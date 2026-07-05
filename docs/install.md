@@ -62,32 +62,39 @@ Plug the USB into the machine, power on, pick the USB from the boot menu
 
 **Ethernet:** you're already online (DHCP happens automatically). Skip ahead.
 
-**WiFi only:** on the 26.05 minimal ISO, wpa_supplicant is already running —
-but in D-Bus mode with no control socket, so **`wpa_cli` cannot talk to it**
-(you get `could not connect to wpa_supplicant: (nil)` forever), and starting
-a second wpa_supplicant by hand collides with it (`Match already configured`
-spam). Don't fight it: the service reads the deliberately-writable
-`/etc/wpa_supplicant/imperative.conf` — put your network there and restart:
+**WiFi only:** on the 26.05 minimal ISO, a wpa_supplicant service is already
+running — but in D-Bus-only mode (`-u`, no `-i`): it never attaches to any
+interface by itself, creates no control socket (`wpa_cli` fails forever with
+`could not connect to wpa_supplicant: (nil)`), and a second wpa_supplicant
+started while it runs collides with it (`Match already configured` spam).
+The reliable procedure, verified on real hardware:
 
 ```bash
 ip link                            # find the interface name: wlp…/wlan…
 
+# 1. write the config (ctrl_interface makes wpa_cli usable for debugging)
 { printf 'ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel\n'
   wpa_passphrase "your-ssid" "your-password"
 } | sudo tee /etc/wpa_supplicant/imperative.conf > /dev/null
 
-sudo systemctl restart wpa_supplicant
-sleep 5
-iw dev wlp13s0 link                # want: "Connected to … SSID: your-ssid"
+# 2. get the do-nothing service fully out of the way
+sudo systemctl stop wpa_supplicant
+sudo pkill -f wpa_supplicant
+pgrep -a wpa_supplicant            # must print NOTHING before continuing
+
+# 3. run the daemon directly against that config
+sudo wpa_supplicant -B -i wlp13s0 -c /etc/wpa_supplicant/imperative.conf
+
+# 4. watch it associate; dhcpcd grabs an address by itself afterwards
+sudo wpa_cli -i wlp13s0 status     # repeat until wpa_state=COMPLETED
+ip a show wlp13s0
 ```
 
-(The `ctrl_interface` line also makes `sudo wpa_cli -i <iface> status` work
-afterwards — useful for watching the association if it doesn't connect:
-wrong-password shows as a 4-way-handshake loop.)
-
-If `ip link` shows no wireless interface at all: check
-`dmesg | grep -iE 'wifi|wlan|firmware'` for missing firmware and
-`sudo rfkill unblock all`.
+Debugging: `status` stuck in `SCANNING` = SSID wrong (case-sensitive);
+looping through `4WAY_HANDSHAKE` = password wrong (check the plaintext
+`#psk` comment in the conf) or a WPA3-only router. No wlan interface in
+`ip link` at all: `dmesg | grep -iE 'wifi|wlan|firmware'` for missing
+firmware, and `sudo rfkill unblock all`.
 
 Wait a few seconds, then verify (works for either connection type):
 
