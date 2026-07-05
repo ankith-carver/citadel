@@ -103,10 +103,7 @@ The live session's `nixos` user has no password, and SSH refuses logins for
 passwordless accounts — so give it a throwaway one. On the machine's console:
 
 ```
-[nixos@nixos:~]$ sudo passwd nixos
-New password:              <- type a throwaway password; nothing echoes while you type
-Retype new password:       <- same again
-passwd: password updated successfully
+[nixos@nixos:~]$ passwd
 ```
 
 Anything goes — it protects a RAM-only session on your LAN for an hour and
