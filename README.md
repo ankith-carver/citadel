@@ -18,7 +18,8 @@ runbooks. When the host changes, the change lands here first.
 - **Two independent escape hatches.** Tailscale runs in host *and* guest
   separately, so a failure in one layer doesn't lock you out of the other.
 - **Boring tools.** `virsh` over SSH is the management plane. Alerting is a
-  handful of systemd timers curling ntfy. No custom APIs, no dashboards.
+  handful of systemd timers posting to a Slack channel. No custom APIs, no
+  dashboards.
 
 ## Quick links
 
@@ -55,7 +56,7 @@ Everything secret or machine-specific is a clearly marked `CHANGEME`:
 | Placeholder | Where |
 |---|---|
 | Your SSH public key | `nixos/modules/base.nix` |
-| ntfy topic URL | `nixos/modules/alerts.nix` |
+| Slack webhook URL (secret — machine only) | `/etc/nixos/slack-webhook` on the host; setup in `nixos/modules/alerts.nix` header |
 | Backup destination + tool | `scripts/backup.sh` (stub — undecided) |
 | Target disk (if not `/dev/nvme0n1`) | `docs/install.md` partitioning step |
 | WiFi SSID + secrets file (only if WiFi-only — prefer Ethernet) | `nixos/modules/wifi.nix` (opt-in import) + `/etc/nixos/wifi.secrets` on the machine |

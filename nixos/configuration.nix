@@ -18,7 +18,7 @@
     ./modules/virtualization.nix # libvirt/KVM, swtpm, OVMF
     ./modules/monitoring.nix     # smartd, chrony, sensors, fwupd
     ./modules/firewall.nix
-    ./modules/alerts.nix         # ntfy timers
+    ./modules/alerts.nix         # Slack alert timers
 
     # Opt-in: only if this box must use WiFi instead of Ethernet (wire it if
     # you can — see the header of wifi.nix for why, and for the secrets file

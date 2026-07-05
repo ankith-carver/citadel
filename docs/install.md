@@ -8,7 +8,9 @@ are done over SSH from your laptop.
 repo must return nothing, except `scripts/backup.sh` which is a known stub):
 
 - [ ] SSH public key in `nixos/modules/base.nix`
-- [ ] ntfy topic in `nixos/modules/alerts.nix` (and subscribe to it on your phone)
+- [ ] Slack incoming webhook created for your alerts channel (setup steps in
+      the header of `nixos/modules/alerts.nix`) — the URL goes on the machine
+      during install, never in the repo
 - [ ] Repo pushed somewhere reachable from the new machine (or be ready to
       copy it over the LAN)
 
@@ -91,6 +93,10 @@ cp /mnt/root/citadel/nixos/configuration.nix /mnt/etc/nixos/configuration.nix
 
 # sanity check: your real SSH key must be in there
 grep -rn CHANGEME /mnt/etc/nixos && echo "STOP - fix placeholders" || echo ok
+
+# put the Slack webhook URL on the machine (secret — lives here, not in git)
+# so the very first boot can post its "host booted" message:
+sh -c 'umask 077; echo "https://hooks.slack.com/services/T00/B00/CHANGEME" > /mnt/etc/nixos/slack-webhook'
 ```
 
 *WiFi-only machines: do this BEFORE nixos-install*, or the first boot comes
@@ -104,7 +110,6 @@ sh -c 'umask 077; echo "home_psk=YOUR-WIFI-PASSWORD" > /mnt/etc/nixos/wifi.secre
 ```
 
 ```bash
-
 nixos-install --no-root-passwd
 
 # set ankith's password (console + sudo use it; SSH never does)
@@ -132,8 +137,8 @@ sensors
 # 3. libvirt is alive and empty
 virsh list --all
 
-# 4. you should have already received the "host booted" ntfy on your phone —
-#    if not, check the topic in alerts.nix:
+# 4. the "host booted" message should already be in your Slack channel —
+#    if not, check the webhook file and the service log:
 systemctl status alert-boot
 
 # 5. make the machine's repo clone your working one and wire the remote
@@ -180,7 +185,7 @@ tailscale status | grep -E 'citadel|work-vm'
 # RDP from the laptop to the guest's tailscale name works
 # SPICE fallback works: virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
 
-# reboot drill: reboot the host, wait for the "host booted" ntfy,
+# reboot drill: reboot the host, wait for "host booted" in Slack,
 # then run the unlock flow in docs/operations.md end to end
 sudo reboot
 ```

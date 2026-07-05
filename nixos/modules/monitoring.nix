@@ -1,11 +1,11 @@
 # Host health: disk SMART, time sync, temperature sensors, firmware updates.
-# The alert *delivery* (ntfy) lives in alerts.nix; this module just turns the
+# The alert *delivery* (Slack) lives in alerts.nix; this module just turns the
 # underlying services on.
 { pkgs, ... }:
 
 {
   # SMART monitoring of the NVMe. Failure/warning notifications are wired to
-  # ntfy in alerts.nix (smartd calls an exec hook there).
+  # Slack in alerts.nix (smartd calls an exec hook there).
   services.smartd.enable = true;
 
   # chrony over systemd-timesyncd: a real NTP daemon, better at keeping time

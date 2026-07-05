@@ -3,7 +3,7 @@
 ## The unlock flow (after every host boot)
 
 The host boots unattended; the guest waits encrypted until you show up.
-Expect the "host booted, VM awaiting unlock" ntfy, then:
+Expect the "host booted, VM awaiting unlock" Slack message, then:
 
 ```bash
 # 1. host is reachable over tailscale (or LAN if you're home)
@@ -20,7 +20,7 @@ virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
 
 Notes:
 
-- The "work-vm not running" ntfy warning fires if you leave it locked >10
+- The "work-vm not running" Slack warning fires if you leave it locked >10
   min. That's a reminder, not an incident.
 - No RDP until the guest has booted past LUKS and (for session RDP) logged
   in — that's why the unlock goes through SPICE.
@@ -34,7 +34,7 @@ Try in order; each rung survives the failure of the one above:
    — works when guest networking/tailscale is broken.
 3. **Serial**: `ssh ankith@citadel` then `virsh console work-vm` — works when
    guest graphics are broken (exit with `Ctrl+]`).
-4. **Host over LAN**: when host tailscale is down (you got the ntfy).
+4. **Host over LAN**: when host tailscale is down (you got the Slack alert).
 5. **Physical**: iGPU console in the corner of the room. The last rung.
 
 ## Safe rebuild discipline (host)
