@@ -1,0 +1,98 @@
+<!--
+  REFERENCE ONLY. The canonical way to create the VM is guest/create-vm.sh;
+  this file documents what the resulting domain should look like so you can
+  diff against `virsh dumpxml work-vm` when debugging, and shows the exact
+  XML the spec's decisions map to. UUIDs, MACs, and firmware/nvram paths are
+  machine-specific and omitted or marked here.
+-->
+<domain type="kvm">
+  <name>work-vm</name>
+
+  <!-- Fixed allocation: memory == currentMemory, and no ballooning device
+       (see <memballoon> below). 48 GiB of the host's 64. -->
+  <memory unit="GiB">48</memory>
+  <currentMemory unit="GiB">48</currentMemory>
+
+  <!-- 10 of 24 host threads. Deliberately no <cputune>/pinning. -->
+  <vcpu placement="static">10</vcpu>
+
+  <os firmware="efi">
+    <type arch="x86_64" machine="q35">hvm</type>
+    <!-- libvirt fills in OVMF loader + per-VM nvram paths -->
+  </os>
+
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+
+  <!-- Guest sees the real Zen 5. Never migrated, so no compatibility mode. -->
+  <cpu mode="host-passthrough" check="none" migratable="off"/>
+
+  <clock offset="utc"/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+
+  <devices>
+    <!-- qcow2 on host ext4. discard=unmap lets guest fstrim punch holes all
+         the way down. Inside the guest: LUKS (with discard enabled) + btrfs. -->
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2" cache="none" discard="unmap"/>
+      <source file="/var/lib/libvirt/images/work-vm.qcow2"/>
+      <target dev="sda" bus="scsi"/>
+    </disk>
+    <controller type="scsi" model="virtio-scsi"/>
+
+    <!-- NAT through libvirt's default network; the guest runs its own
+         tailscale for direct remote access. -->
+    <interface type="network">
+      <source network="default"/>
+      <model type="virtio"/>
+    </interface>
+
+    <!-- virtio-gpu, 2D only: accel3d stays off (no GPU on this box). -->
+    <video>
+      <model type="virtio" heads="1">
+        <acceleration accel3d="no"/>
+      </model>
+    </video>
+
+    <!-- SPICE console: install-time UI and the LUKS unlock screen. Reached
+         via virt-viewer over qemu+ssh:// — no TCP listener. -->
+    <graphics type="spice">
+      <listen type="none"/>
+    </graphics>
+    <channel type="spicevmc">
+      <target type="virtio" name="com.redhat.spice.0"/>
+    </channel>
+
+    <!-- qemu-guest-agent channel; the agent package is installed guest-side
+         (fedora-notes.md). Enables quiesced snapshots and virsh shutdown. -->
+    <channel type="unix">
+      <target type="virtio" name="org.qemu.guest_agent.0"/>
+    </channel>
+
+    <!-- Last-resort access: `virsh console work-vm` (guest-side getty setup
+         in fedora-notes.md). -->
+    <serial type="pty">
+      <target port="0"/>
+    </serial>
+    <console type="pty">
+      <target type="serial" port="0"/>
+    </console>
+
+    <!-- Emulated TPM 2.0 via swtpm. -->
+    <tpm model="tpm-crb">
+      <backend type="emulator" version="2.0"/>
+    </tpm>
+
+    <!-- Explicitly NO ballooning: memory is a fixed contract. -->
+    <memballoon model="none"/>
+
+    <input type="tablet" bus="usb"/>
+    <rng model="virtio">
+      <backend model="random">/dev/urandom</backend>
+    </rng>
+  </devices>
+</domain>
