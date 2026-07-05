@@ -1,0 +1,14 @@
+# The real hardware config is generated on the machine at install time and
+# stays out of the repo (see nixos/hardware-configuration.nix.example).
+hardware-configuration.nix
+
+# Disk images never belong in git.
+*.qcow2
+*.iso
+
+# Anything secret. Nothing in the repo should ever need these patterns to
+# match, but they're a belt-and-braces guard.
+*.key
+*.pem
+secrets/
+.env
