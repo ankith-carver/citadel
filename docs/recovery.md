@@ -1,5 +1,30 @@
 # Disaster recovery — dead SSD to working machine
 
+## Lesser disaster first: host OS broken, disk fine
+
+If NixOS is wrecked but the NVMe is healthy, you do NOT need backups or a
+reinstall to get at the VM — the qcow2 is an ordinary file on ext4, and any
+live-booted Linux can run it directly:
+
+```bash
+# boot a live Linux USB with KVM support on the machine
+sudo mount /dev/disk/by-label/nixos /mnt
+nix-shell -p qemu        # NixOS live stick; other distros: install qemu-kvm
+
+qemu-system-x86_64 -enable-kvm -machine q35 -cpu host -smp 8 -m 16G \
+  -drive if=pflash,format=raw,readonly=on,file=<path-to-OVMF_CODE.fd> \
+  -drive file=/mnt/var/lib/libvirt/images/work-vm.qcow2,if=virtio,discard=unmap \
+  -display gtk
+```
+
+Notes: OVMF/UEFI firmware is required (the guest is UEFI); the emulated TPM
+is NOT required (guest LUKS unlocks with the passphrase); type the LUKS
+passphrase in the qemu window as usual. Smaller -smp/-m than the real VM is
+fine for an emergency session. Once you're done, reinstalling the host is
+just install.md + bootstrap.sh — the qcow2 stays in place throughout.
+
+## Full disaster: dead SSD
+
 Scenario: the NVMe died (or the machine was lost) and you're starting from a
 blank disk. Everything needed is: **this repo** + **the latest guest disk
 backup** + **your LUKS passphrase**. If any of those three is missing, stop
