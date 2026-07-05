@@ -99,13 +99,27 @@ ping -c 2 nixos.org      # internet works
 
 ## 4. SSH in from the laptop
 
-On the machine's console, give the live user a password so SSH lets you in:
+The live session's `nixos` user has no password, and SSH refuses logins for
+passwordless accounts — so give it a throwaway one. On the machine's console:
 
-```bash
-passwd    # temporary, dies with the live session
+```
+[nixos@nixos:~]$ sudo passwd nixos
+New password:              <- type a throwaway password; nothing echoes while you type
+Retype new password:       <- same again
+passwd: password updated successfully
 ```
 
-From the laptop:
+Anything goes — it protects a RAM-only session on your LAN for an hour and
+evaporates on reboot. It is NOT related to any password of the installed
+system (those come in step 7).
+
+Get the machine's IP if you don't already have it:
+
+```bash
+ip a show wlp13s0 | grep 'inet '     # or your ethernet interface
+```
+
+From the laptop (password = the one you just set):
 
 ```bash
 ssh nixos@192.168.1.50
