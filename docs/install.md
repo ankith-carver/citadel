@@ -170,7 +170,7 @@ mount -o umask=0077 /dev/disk/by-label/BOOT /mnt/boot
 nixos-generate-config --root /mnt
 
 # fetch this repo (git isn't on the minimal ISO; nix-shell gets it ephemerally)
-nix-shell -p git --run "git clone https://CHANGEME-your-repo-url /mnt/root/citadel"
+nix-shell -p git --run "git clone https://github.com/ankith-carver/citadel.git /mnt/root/citadel"
 
 # replace the generated configuration with ours; keep the generated hardware config
 cp -r /mnt/root/citadel/nixos/modules /mnt/etc/nixos/modules
@@ -253,7 +253,7 @@ systemctl status alert-boot
 sudo cat /etc/nixos/slack-webhook   # typo'd URL is the usual culprit
 
 # 5. make the machine's repo clone your working one
-git clone https://CHANGEME-your-repo-url ~/citadel
+git clone https://github.com/ankith-carver/citadel.git ~/citadel
 ```
 
 From here on, config changes = edit in the repo → `./scripts/bootstrap.sh`
