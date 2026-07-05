@@ -127,8 +127,24 @@ ssh nixos@192.168.1.50
 sudo -i
 ```
 
-Everything from here on happens in this root shell. Two sanity checks
-before touching the disk:
+Everything from here on happens in this root shell.
+
+## 5–7 the easy way: the interactive installer
+
+`scripts/install.sh` does steps 5, 6 and 7 in one interactive run: it asks
+for the disk, your SSH public key, WiFi SSID/password, and the Slack webhook,
+applies each answer in the right place, verifies no placeholder or
+commented-out module slips through, and confirms before wiping anything:
+
+```bash
+nix-shell -p git --run 'git clone https://github.com/ankith-carver/citadel.git /root/citadel'
+/root/citadel/scripts/install.sh
+```
+
+Then skip ahead to step 8. The manual steps below do exactly the same thing
+and remain as reference / for when you want to deviate.
+
+Two sanity checks before touching the disk manually:
 
 ```bash
 # 1. we really booted UEFI (if this fails, CSM is still on — back to step 1)
@@ -138,7 +154,7 @@ before touching the disk:
 lsblk -o NAME,SIZE,MODEL
 ```
 
-## 5. Partition and mount
+## 5. Partition and mount (manual)
 
 GPT, 1 GiB ESP, rest ext4, everything referenced by label (so the config
 never hardcodes a device path). No swap partition by design: 64 GB RAM, and
