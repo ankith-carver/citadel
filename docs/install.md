@@ -106,6 +106,10 @@ passwordless accounts — so give it a throwaway one. On the machine's console:
 [nixos@nixos:~]$ passwd
 ```
 
+It asks `New password:` then `Retype new password:` — type a throwaway
+password both times. **Nothing shows on screen while you type** — that's
+normal, keep typing and press Enter.
+
 Anything goes — it protects a RAM-only session on your LAN for an hour and
 evaporates on reboot. It is NOT related to any password of the installed
 system (those come in step 7).
