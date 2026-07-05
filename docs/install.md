@@ -198,8 +198,12 @@ sh -c 'umask 077; echo "https://hooks.slack.com/services/T…/B…/…" > /mnt/e
 sh -c 'umask 077; printf "home_psk=%s\n" "YOUR-WIFI-PASSWORD" > /mnt/etc/nixos/wifi.secrets'
 cat /mnt/etc/nixos/wifi.secrets      # verify: home_psk=<your password>, one line
 
-# and confirm the wifi.nix import really is uncommented:
-grep wifi /mnt/etc/nixos/configuration.nix
+# MECHANICAL check that the wifi module is actually switched on. The
+# CHANGEME grep above can NOT catch this: a commented-out import is
+# invisible to it (found out the hard way — the install completed "ok"
+# with wifi silently disabled).
+grep -Eq '^[[:space:]]*\./modules/wifi.nix' /mnt/etc/nixos/configuration.nix \
+  && echo "wifi module ON" || echo "STOP: wifi import still commented out"
 ```
 
 ## 7. Install
