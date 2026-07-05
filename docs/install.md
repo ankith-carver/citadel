@@ -188,9 +188,14 @@ talking (these live in `/etc/nixos/` on the machine, never in git):
 sh -c 'umask 077; echo "https://hooks.slack.com/services/T…/B…/…" > /mnt/etc/nixos/slack-webhook'
 
 # WiFi only — without this the first boot has no network and you're back
-# on the physical console:
-sh -c 'umask 077; echo "home_psk=YOUR-WIFI-PASSWORD" > /mnt/etc/nixos/wifi.secrets'
-# (and confirm the wifi.nix import really is uncommented:)
+# on the physical console. The file is ONE line: home_psk=<password>.
+# "home_psk" is a variable NAME, kept literally — wifi.nix references it as
+# pskRaw = "ext:home_psk". Replace only the password after the equals sign.
+# (The SSID does NOT go here; it lives in modules/wifi.nix.)
+sh -c 'umask 077; printf "home_psk=%s\n" "YOUR-WIFI-PASSWORD" > /mnt/etc/nixos/wifi.secrets'
+cat /mnt/etc/nixos/wifi.secrets      # verify: home_psk=<your password>, one line
+
+# and confirm the wifi.nix import really is uncommented:
 grep wifi /mnt/etc/nixos/configuration.nix
 ```
 
