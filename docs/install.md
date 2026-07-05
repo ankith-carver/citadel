@@ -65,14 +65,29 @@ Plug the USB into the machine, power on, pick the USB from the boot menu
 **WiFi only:** the minimal ISO ships wpa_supplicant, not started:
 
 ```bash
+ip link                            # find the interface name first: wlp…/wlan…
 sudo systemctl start wpa_supplicant
-wpa_cli
+sudo wpa_cli -i wlp5s0             # <- your interface name; sudo matters
 > add_network
 0                                  # <- it prints the network id; use it below
 > set_network 0 ssid "your-ssid"
 > set_network 0 psk "your-password"
 > enable_network 0
 > quit
+```
+
+*If wpa_cli says `could not connect to wpa_supplicant: (nil)`* — the daemon
+isn't attached to the interface. In order: (1) `ip link` — if no wlan
+interface exists, check `dmesg | grep -iE 'wifi|wlan|firmware'` for missing
+firmware; (2) `sudo rfkill unblock all`; (3) `sudo systemctl restart
+wpa_supplicant` (it often starts before the WiFi firmware finishes loading)
+and retry `sudo wpa_cli -i <iface>`. Bypass that always works:
+
+```bash
+sudo systemctl stop wpa_supplicant
+wpa_passphrase "your-ssid" "your-password" | sudo tee /tmp/wifi.conf > /dev/null
+sudo wpa_supplicant -B -i wlp5s0 -c /tmp/wifi.conf
+# dhcpcd attaches automatically; `ip a` shows an address within seconds
 ```
 
 Wait a few seconds, then verify (works for either connection type):
