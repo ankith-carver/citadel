@@ -184,7 +184,10 @@ Now the two machine-only secrets, so the first boot comes up connected and
 talking (these live in `/etc/nixos/` on the machine, never in git):
 
 ```bash
-# Slack webhook — lets the very first boot post "host booted"
+# Slack webhook — lets the very first boot post "host booted". OPTIONAL:
+# skip it and alert units just fail quietly until you create the file on
+# the running host later (same command minus /mnt; no rebuild needed, test
+# with: sudo systemctl start alert-boot)
 sh -c 'umask 077; echo "https://hooks.slack.com/services/T…/B…/…" > /mnt/etc/nixos/slack-webhook'
 
 # WiFi only — without this the first boot has no network and you're back
