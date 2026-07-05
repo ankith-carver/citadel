@@ -58,6 +58,7 @@ Everything secret or machine-specific is a clearly marked `CHANGEME`:
 | ntfy topic URL | `nixos/modules/alerts.nix` |
 | Backup destination + tool | `scripts/backup.sh` (stub — undecided) |
 | Target disk (if not `/dev/nvme0n1`) | `docs/install.md` partitioning step |
+| WiFi SSID + secrets file (only if WiFi-only — prefer Ethernet) | `nixos/modules/wifi.nix` (opt-in import) + `/etc/nixos/wifi.secrets` on the machine |
 | Fedora ISO path / guest disk size | `guest/create-vm.sh` (env vars) |
 
 Tailscale is authenticated interactively (`tailscale up`) on host and guest —

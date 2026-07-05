@@ -35,6 +35,19 @@ Enter UEFI setup (usually `Del` at power-on):
    ip a        # note the LAN IP, e.g. 192.168.1.50
    ```
 
+   *If the machine is WiFi-only* (wire it if you can — see
+   `nixos/modules/wifi.nix` for why), get the installer online first:
+
+   ```
+   sudo systemctl start wpa_supplicant
+   wpa_cli
+   > add_network
+   > set_network 0 ssid "your-ssid"
+   > set_network 0 psk "your-password"
+   > enable_network 0
+   > quit
+   ```
+
 3. From the laptop:
 
    ```
@@ -78,6 +91,19 @@ cp /mnt/root/citadel/nixos/configuration.nix /mnt/etc/nixos/configuration.nix
 
 # sanity check: your real SSH key must be in there
 grep -rn CHANGEME /mnt/etc/nixos && echo "STOP - fix placeholders" || echo ok
+```
+
+*WiFi-only machines: do this BEFORE nixos-install*, or the first boot comes
+up with no network and you're on the physical console:
+
+```bash
+# 1. uncomment ./modules/wifi.nix in /mnt/etc/nixos/configuration.nix
+#    and set your SSID in /mnt/etc/nixos/modules/wifi.nix
+# 2. create the secrets file on the machine (never in git):
+sh -c 'umask 077; echo "home_psk=YOUR-WIFI-PASSWORD" > /mnt/etc/nixos/wifi.secrets'
+```
+
+```bash
 
 nixos-install --no-root-passwd
 
