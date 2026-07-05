@@ -1,0 +1,37 @@
+# EXAMPLE ONLY — do not use this file directly.
+#
+# The real /etc/nixos/hardware-configuration.nix is generated on the machine
+# during install by `nixos-generate-config` (see docs/install.md). It probes
+# the actual hardware: kernel modules for your NVMe/USB controllers, CPU
+# microcode, and the filesystem UUIDs of the partitions you created.
+#
+# It is intentionally gitignored: it contains disk UUIDs unique to one
+# physical install, and regenerating it is one command. scripts/bootstrap.sh
+# refuses to run if it's missing, so you can't rebuild without it by mistake.
+#
+# A real one for this hardware will look roughly like this:
+{ config, lib, pkgs, modulesPath, ... }:
+
+{
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-amd" ];   # <- this is what enables KVM on Ryzen
+  boot.extraModulePackages = [ ];
+
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/BOOT";
+    fsType = "vfat";
+    options = [ "fmask=0077" "dmask=0077" ];
+  };
+
+  swapDevices = [ ];
+
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+}
