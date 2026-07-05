@@ -62,33 +62,32 @@ Plug the USB into the machine, power on, pick the USB from the boot menu
 
 **Ethernet:** you're already online (DHCP happens automatically). Skip ahead.
 
-**WiFi only:** the minimal ISO ships wpa_supplicant, not started:
+**WiFi only:** on the 26.05 minimal ISO, wpa_supplicant is already running —
+but in D-Bus mode with no control socket, so **`wpa_cli` cannot talk to it**
+(you get `could not connect to wpa_supplicant: (nil)` forever), and starting
+a second wpa_supplicant by hand collides with it (`Match already configured`
+spam). Don't fight it: the service reads the deliberately-writable
+`/etc/wpa_supplicant/imperative.conf` — put your network there and restart:
 
 ```bash
-ip link                            # find the interface name first: wlp…/wlan…
-sudo systemctl start wpa_supplicant
-sudo wpa_cli -i wlp5s0             # <- your interface name; sudo matters
-> add_network
-0                                  # <- it prints the network id; use it below
-> set_network 0 ssid "your-ssid"
-> set_network 0 psk "your-password"
-> enable_network 0
-> quit
+ip link                            # find the interface name: wlp…/wlan…
+
+{ printf 'ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel\n'
+  wpa_passphrase "your-ssid" "your-password"
+} | sudo tee /etc/wpa_supplicant/imperative.conf > /dev/null
+
+sudo systemctl restart wpa_supplicant
+sleep 5
+iw dev wlp13s0 link                # want: "Connected to … SSID: your-ssid"
 ```
 
-*If wpa_cli says `could not connect to wpa_supplicant: (nil)`* — the daemon
-isn't attached to the interface. In order: (1) `ip link` — if no wlan
-interface exists, check `dmesg | grep -iE 'wifi|wlan|firmware'` for missing
-firmware; (2) `sudo rfkill unblock all`; (3) `sudo systemctl restart
-wpa_supplicant` (it often starts before the WiFi firmware finishes loading)
-and retry `sudo wpa_cli -i <iface>`. Bypass that always works:
+(The `ctrl_interface` line also makes `sudo wpa_cli -i <iface> status` work
+afterwards — useful for watching the association if it doesn't connect:
+wrong-password shows as a 4-way-handshake loop.)
 
-```bash
-sudo systemctl stop wpa_supplicant
-wpa_passphrase "your-ssid" "your-password" | sudo tee /tmp/wifi.conf > /dev/null
-sudo wpa_supplicant -B -i wlp5s0 -c /tmp/wifi.conf
-# dhcpcd attaches automatically; `ip a` shows an address within seconds
-```
+If `ip link` shows no wireless interface at all: check
+`dmesg | grep -iE 'wifi|wlan|firmware'` for missing firmware and
+`sudo rfkill unblock all`.
 
 Wait a few seconds, then verify (works for either connection type):
 
