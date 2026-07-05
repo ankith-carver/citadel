@@ -62,39 +62,33 @@ Plug the USB into the machine, power on, pick the USB from the boot menu
 
 **Ethernet:** you're already online (DHCP happens automatically). Skip ahead.
 
-**WiFi only:** on the 26.05 minimal ISO, a wpa_supplicant service is already
-running — but in D-Bus-only mode (`-u`, no `-i`): it never attaches to any
-interface by itself, creates no control socket (`wpa_cli` fails forever with
-`could not connect to wpa_supplicant: (nil)`), and a second wpa_supplicant
-started while it runs collides with it (`Match already configured` spam).
-The reliable procedure, verified on real hardware:
+**WiFi only:** the installer runs **NetworkManager** — use it and nothing
+else:
 
 ```bash
-ip link                            # find the interface name: wlp…/wlan…
-
-# 1. write the config (ctrl_interface makes wpa_cli usable for debugging)
-{ printf 'ctrl_interface=DIR=/run/wpa_supplicant GROUP=wheel\n'
-  wpa_passphrase "your-ssid" "your-password"
-} | sudo tee /etc/wpa_supplicant/imperative.conf > /dev/null
-
-# 2. get the do-nothing service fully out of the way
-sudo systemctl stop wpa_supplicant
-sudo pkill -f wpa_supplicant
-pgrep -a wpa_supplicant            # must print NOTHING before continuing
-
-# 3. run the daemon directly against that config
-sudo wpa_supplicant -B -i wlp13s0 -c /etc/wpa_supplicant/imperative.conf
-
-# 4. watch it associate; dhcpcd grabs an address by itself afterwards
-sudo wpa_cli -i wlp13s0 status     # repeat until wpa_state=COMPLETED
-ip a show wlp13s0
+nmcli device wifi connect "your-ssid" password "your-password"
 ```
 
-Debugging: `status` stuck in `SCANNING` = SSID wrong (case-sensitive);
-looping through `4WAY_HANDSHAKE` = password wrong (check the plaintext
-`#psk` comment in the conf) or a WPA3-only router. No wlan interface in
-`ip link` at all: `dmesg | grep -iE 'wifi|wlan|firmware'` for missing
-firmware, and `sudo rfkill unblock all`.
+**Prefer a UI?** `nmtui` is a full menu interface that works on the plain
+console (this is the path that was actually used to build this machine):
+
+1. Run `nmtui`
+2. Arrow keys → **Activate a connection** → Enter
+3. Pick your SSID from the list → Enter
+4. Type the WiFi password → OK
+5. The list shows a `*` next to the connected network → **Back** → **Quit**
+
+**Do NOT touch wpa_supplicant/wpa_cli directly on the ISO.** A wpa_supplicant
+unit is visibly running, but it's NetworkManager's D-Bus-managed backend: it
+has no control socket (`wpa_cli` fails with `could not connect: (nil)`), a
+hand-started second supplicant collides with it (`Match already configured`),
+and killing it just makes NM respawn it. That path is hours of pain that
+`nmcli` replaces with one command. (Reference: NixOS manual,
+"Networking in the installer".)
+
+If `nmcli` reports no WiFi device at all: check
+`dmesg | grep -iE 'wifi|wlan|firmware'` for missing firmware and try
+`sudo rfkill unblock all`.
 
 Wait a few seconds, then verify (works for either connection type):
 
