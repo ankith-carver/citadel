@@ -64,6 +64,7 @@ virt-install \
   --machine q35 \
   --boot uefi \
   --tpm model=tpm-crb,backend.type=emulator,backend.version=2.0 \
+  --memballoon model=none \
   --controller type=scsi,model=virtio-scsi \
   --disk "path=${DISK_PATH},size=${DISK_SIZE_GB},format=qcow2,bus=scsi,discard=unmap,cache=none" \
   --network network=default,model=virtio \
