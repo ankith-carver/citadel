@@ -32,6 +32,14 @@ if virsh dominfo "$VM_NAME" &>/dev/null; then
   exit 1
 fi
 
+# The default NAT network is defined on NixOS but autostart is declared in
+# virtualization.nix (tmpfiles symlink) — this start is only for the first
+# run after enabling that, before any reboot has let autostart do its thing.
+if ! virsh net-info default | grep -q '^Active:.*yes'; then
+  echo "starting libvirt default network..."
+  virsh net-start default
+fi
+
 # What each block means:
 #   --cpu host-passthrough  guest sees the real Zen 5 CPU (best perf; we never
 #                           migrate this VM so portability doesn't matter)
