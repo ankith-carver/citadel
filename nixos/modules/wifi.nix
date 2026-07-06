@@ -15,6 +15,15 @@
 { ... }:
 
 {
+  # wpa_supplicant is hardened by default: it runs as its own unprivileged
+  # user and reads the psk from the secrets file AT RUNTIME. A root-only
+  # (0600) secrets file therefore breaks auth silently — service "running",
+  # interface NO-CARRIER, no obvious error. (Cost us a debugging session on
+  # first boot.) Normalize ownership on every boot, before services start:
+  systemd.tmpfiles.rules = [
+    "z /etc/nixos/wifi.secrets 0640 root wpa_supplicant -"
+  ];
+
   networking.wireless = {
     enable = true;
 
