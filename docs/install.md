@@ -127,7 +127,16 @@ ssh nixos@192.168.1.50
 sudo -i
 ```
 
-Everything from here on happens in this root shell.
+Everything from here on happens in this root shell. Two sanity checks
+before touching the disk:
+
+```bash
+# 1. we really booted UEFI (if this fails, CSM is still on — back to step 1)
+[ -d /sys/firmware/efi ] && echo "UEFI ok" || echo "STOP: legacy BIOS boot"
+
+# 2. the target disk is what we think it is
+lsblk -o NAME,SIZE,MODEL
+```
 
 ## 5–7 the easy way: the interactive installer
 
@@ -143,16 +152,6 @@ nix-shell -p git --run 'git clone https://github.com/ankith-carver/citadel.git /
 
 Then skip ahead to step 8. The manual steps below do exactly the same thing
 and remain as reference / for when you want to deviate.
-
-Two sanity checks before touching the disk manually:
-
-```bash
-# 1. we really booted UEFI (if this fails, CSM is still on — back to step 1)
-[ -d /sys/firmware/efi ] && echo "UEFI ok" || echo "STOP: legacy BIOS boot"
-
-# 2. the target disk is what we think it is
-lsblk -o NAME,SIZE,MODEL
-```
 
 ## 5. Partition and mount (manual)
 
