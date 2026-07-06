@@ -35,7 +35,10 @@ fi
 # The default NAT network is defined on NixOS but autostart is declared in
 # virtualization.nix (tmpfiles symlink) — this start is only for the first
 # run after enabling that, before any reboot has let autostart do its thing.
-if ! virsh net-info default | grep -q '^Active:.*yes'; then
+# (awk, not grep -q: -q exits early and can SIGPIPE virsh under pipefail,
+# failing the check even when the network is active. Hit on the real build.)
+net_active=$(virsh net-info default | awk '/^Active:/{print $2}')
+if [ "$net_active" != "yes" ]; then
   echo "starting libvirt default network..."
   virsh net-start default
 fi
