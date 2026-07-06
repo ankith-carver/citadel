@@ -31,8 +31,8 @@
     secretsFile = "/etc/nixos/wifi.secrets";
 
     networks = {
-      # ── REQUIRED if you enable WiFi ── your SSID:
-      "CHANGEME-ssid" = {
+      # SSID only — the password stays in the secrets file on the machine.
+      "Orbital" = {
         pskRaw = "ext:home_psk";
       };
     };

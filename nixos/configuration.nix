@@ -20,10 +20,9 @@
     ./modules/firewall.nix
     ./modules/alerts.nix         # Slack alert timers
 
-    # Opt-in: only if this box must use WiFi instead of Ethernet (wire it if
-    # you can — see the header of wifi.nix for why, and for the secrets file
-    # you must create on the machine first).
-    # ./modules/wifi.nix
+    # This box is WiFi-connected (see wifi.nix header for the secrets file
+    # that must exist on the machine). Comment out if it ever gets a wire.
+    ./modules/wifi.nix
   ];
 
   # Change the hostname here (and nowhere else). Keep it short — it shows up

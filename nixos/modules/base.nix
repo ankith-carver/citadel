@@ -13,10 +13,9 @@
     #             (virsh, virt-install, virt-viewer all just work)
     extraGroups = [ "wheel" "libvirtd" ];
     openssh.authorizedKeys.keys = [
-      # ── REQUIRED ── paste your real public key BEFORE installing.
-      # SSH is key-only (see ssh.nix); leave this placeholder in and you will
-      # be locked out of remote access after first boot.
-      "ssh-ed25519 CHANGEME-paste-your-public-key ankith@laptop"
+      # SSH is key-only (see ssh.nix). This is the "Citadel access key" from
+      # the Mac (~/.ssh/Citadel*). Public key — safe in the repo.
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGeNl3hHezupS6bb2xwFZzNvx3lvT6SXwdOAWjGynNZR"
     ];
   };
 
