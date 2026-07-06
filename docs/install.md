@@ -301,6 +301,8 @@ From the **laptop**, open the installer console:
 # (macOS has no SPICE client; Screen Sharing speaks VNC natively)
 ssh -f -N -o ExitOnForwardFailure=yes -L 5901:127.0.0.1:5901 ankith@citadel
 open vnc://127.0.0.1:5901
+# VNC password: citadel (set by create-vm.sh — exists only because Apple's
+# client refuses password-less VNC; the SSH tunnel is the actual security)
 # port = 5900 + N from: virsh vncdisplay work-vm   (usually :1 -> 5901)
 # on a Linux laptop instead: virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
 ```

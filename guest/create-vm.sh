@@ -16,6 +16,9 @@ MEMORY_MIB="${MEMORY_MIB:-49152}"        # 48 GiB, fixed. No ballooning.
 VCPUS="${VCPUS:-10}"                     # of 24 threads; rest stays with host
 DISK_SIZE_GB="${DISK_SIZE_GB:-500}"      # qcow2 is sparse; this is the cap
 DISK_PATH="${DISK_PATH:-/var/lib/libvirt/images/${VM_NAME}.qcow2}"
+# NOT a security boundary — the SSH tunnel is. This exists because macOS's
+# built-in Screen Sharing refuses to connect to a password-less VNC server.
+VNC_PASSWORD="${VNC_PASSWORD:-citadel}"
 
 ISO_PATH="${1:?usage: $0 /path/to/Fedora-Workstation-Live-x86_64.iso}"
 
@@ -72,7 +75,7 @@ virt-install \
   --network network=default,model=virtio \
   --video virtio \
   --graphics spice \
-  --graphics vnc,listen=127.0.0.1 \
+  --graphics vnc,listen=127.0.0.1,password="$VNC_PASSWORD" \
   --channel spicevmc \
   --channel unix,target.type=virtio,target.name=org.qemu.guest_agent.0 \
   --serial pty \
@@ -86,7 +89,7 @@ cat <<EOF
 
 Open its console from the laptop:
   macOS:  ssh -f -N -o ExitOnForwardFailure=yes -L ${VNC_PORT}:127.0.0.1:${VNC_PORT} ankith@$(hostname)
-          open vnc://127.0.0.1:${VNC_PORT}
+          open vnc://127.0.0.1:${VNC_PORT}     (VNC password: $VNC_PASSWORD)
   Linux:  virt-viewer --connect "qemu+ssh://ankith@$(hostname)/system" $VM_NAME
 
 Then walk the Fedora installer (choose full-disk encryption!) and follow

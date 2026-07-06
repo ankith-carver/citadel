@@ -82,13 +82,16 @@ Option B — re-create the definition around the restored disk:
 virt-install \
   --name work-vm \
   --memory 49152 --vcpus 10 --cpu host-passthrough \
+  --memballoon model=none \
   --machine q35 --boot uefi \
   --tpm model=tpm-crb,backend.type=emulator,backend.version=2.0 \
   --osinfo detect=on,require=off \
   --controller type=scsi,model=virtio-scsi \
   --disk path=/var/lib/libvirt/images/work-vm.qcow2,format=qcow2,bus=scsi,discard=unmap,cache=none \
   --network network=default,model=virtio \
-  --video virtio --graphics spice --channel spicevmc \
+  --video virtio --graphics spice \
+  --graphics vnc,listen=127.0.0.1,password=citadel \
+  --channel spicevmc \
   --channel unix,target.type=virtio,target.name=org.qemu.guest_agent.0 \
   --serial pty \
   --import --autoconsole none

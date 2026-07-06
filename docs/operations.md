@@ -5,20 +5,31 @@
 The host boots unattended; the guest waits encrypted until you show up.
 Expect the "host booted, VM awaiting unlock" Slack message, then:
 
+Pure-SSH ritual (primary — no graphics involved anywhere):
+
 ```bash
 # 1. host is reachable over tailscale (or LAN if you're home)
 ssh ankith@citadel
 
-# 2. start the VM — it boots to the LUKS passphrase prompt
+# 2. start the VM and attach to its serial console
 virsh start work-vm
+virsh console work-vm
 
-# 3. from the Mac, open the graphical console and type the passphrase
-#    (VNC over SSH — macOS has no SPICE client; Screen Sharing is native)
+# 3. the LUKS passphrase prompt appears in the console during boot — type
+#    it, watch Fedora come up, then detach with Ctrl+]
+
+# 4. auto-login has already started the session: connect RDP to the guest's
+#    tailscale name and work
+```
+
+Graphical alternative (same result via the VNC console; VNC password is
+`citadel` — a macOS-client formality, the SSH tunnel is the real gate):
+
+```bash
 ssh -f -N -o ExitOnForwardFailure=yes -L 5901:127.0.0.1:5901 ankith@citadel
 open vnc://127.0.0.1:5901
-
-# 4. once GNOME is up, switch to RDP (guest's tailscale name) and close
-#    the VNC window (kill the tunnel with: pkill -f 5901:127.0.0.1:5901)
+# type the LUKS passphrase in the window; close it once GNOME is up
+# (kill the tunnel with: pkill -f 5901:127.0.0.1:5901)
 ```
 
 Notes:

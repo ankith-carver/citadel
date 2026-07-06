@@ -58,10 +58,16 @@
       </model>
     </video>
 
-    <!-- SPICE console: install-time UI and the LUKS unlock screen. Reached
-         via virt-viewer over qemu+ssh:// — no TCP listener. -->
+    <!-- Two console paths, both loopback-only, both reached through SSH.
+         SPICE for virt-viewer (Linux laptops only — no macOS client exists);
+         VNC for macOS Screen Sharing. The VNC passwd is NOT a security
+         boundary (the SSH tunnel is) — it exists because Apple's client
+         refuses password-less VNC servers. -->
     <graphics type="spice">
       <listen type="none"/>
+    </graphics>
+    <graphics type="vnc" passwd="citadel">
+      <listen type="address" address="127.0.0.1"/>
     </graphics>
     <channel type="spicevmc">
       <target type="virtio" name="com.redhat.spice.0"/>
