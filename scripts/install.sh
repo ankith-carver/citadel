@@ -110,12 +110,13 @@ if [ -n "$SLACK_URL" ]; then
   (umask 077; printf '%s\n' "$SLACK_URL" > /mnt/etc/nixos/slack-webhook)
 fi
 
-# the gate that must hold: no placeholders in what we're about to install
-# (wifi.nix is exempt when wifi is off — the module isn't imported then)
+# the gate that must hold: no placeholders in what we're about to install.
+# Comment lines are ignored (only real values count as placeholders), and
+# wifi.nix is exempt when wifi is off — the module isn't imported then.
 if [ -n "$WIFI_SSID" ]; then
-  LEFT=$(grep -rn CHANGEME /mnt/etc/nixos || true)
+  LEFT=$(grep -rn CHANGEME /mnt/etc/nixos | grep -vE ':[0-9]+:[[:space:]]*#' || true)
 else
-  LEFT=$(grep -rn CHANGEME /mnt/etc/nixos --exclude=wifi.nix || true)
+  LEFT=$(grep -rn CHANGEME /mnt/etc/nixos --exclude=wifi.nix | grep -vE ':[0-9]+:[[:space:]]*#' || true)
 fi
 [ -z "$LEFT" ] || die "unfilled placeholders remain:
 $LEFT"

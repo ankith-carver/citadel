@@ -13,7 +13,7 @@
     #             (virsh, virt-install, virt-viewer all just work)
     extraGroups = [ "wheel" "libvirtd" ];
     openssh.authorizedKeys.keys = [
-      # ── CHANGEME ── paste your real public key BEFORE installing.
+      # ── REQUIRED ── paste your real public key BEFORE installing.
       # SSH is key-only (see ssh.nix); leave this placeholder in and you will
       # be locked out of remote access after first boot.
       "ssh-ed25519 CHANGEME-paste-your-public-key ankith@laptop"

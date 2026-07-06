@@ -22,7 +22,7 @@
     secretsFile = "/etc/nixos/wifi.secrets";
 
     networks = {
-      # ── CHANGEME (only if you enable WiFi at all) ── your SSID:
+      # ── REQUIRED if you enable WiFi ── your SSID:
       "CHANGEME-ssid" = {
         pskRaw = "ext:home_psk";
       };

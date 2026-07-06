@@ -19,9 +19,16 @@ if [ ! -f /etc/nixos/hardware-configuration.nix ]; then
   exit 1
 fi
 
-if grep -rq CHANGEME "$REPO_DIR/nixos"; then
+# Placeholder gate: comment lines don't count, and wifi.nix is exempt when
+# the module isn't imported (its placeholder SSID is then inert).
+if grep -Eq '^[[:space:]]*\./modules/wifi.nix' "$REPO_DIR/nixos/configuration.nix"; then
+  LEFT=$(grep -rn CHANGEME "$REPO_DIR/nixos" | grep -vE ':[0-9]+:[[:space:]]*#' || true)
+else
+  LEFT=$(grep -rn CHANGEME "$REPO_DIR/nixos" --exclude=wifi.nix | grep -vE ':[0-9]+:[[:space:]]*#' || true)
+fi
+if [ -n "$LEFT" ]; then
   echo "error: unfilled CHANGEME placeholders in nixos/ — fix these first:" >&2
-  grep -rn CHANGEME "$REPO_DIR/nixos" >&2
+  echo "$LEFT" >&2
   exit 1
 fi
 
