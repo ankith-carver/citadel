@@ -102,7 +102,8 @@ have it — with the default passphrase-only LUKS setup this doesn't matter.)
 ```bash
 virsh start work-vm
 # from the laptop:
-virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
+ssh -f -N -o ExitOnForwardFailure=yes -L 5901:127.0.0.1:5901 ankith@citadel
+open vnc://127.0.0.1:5901     # macOS; Linux: virt-viewer -c qemu+ssh://ankith@citadel/system work-vm
 # type the LUKS passphrase
 ```
 

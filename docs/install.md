@@ -16,15 +16,12 @@ BIOS setup and the first minutes of the installer.
 - [ ] A Slack incoming webhook URL for the alerts channel (setup steps in
       the header of `nixos/modules/alerts.nix`)
 
-**Fill every placeholder** — `grep -rn CHANGEME .` in this repo must return
-nothing except `scripts/backup.sh` (a known stub) and, if you're not using
-WiFi, `nixos/modules/wifi.nix` (not imported by default):
-
-- [ ] Your SSH public key in `nixos/modules/base.nix` (`cat ~/.ssh/id_ed25519.pub`
-      on the laptop; `ssh-keygen -t ed25519` first if you don't have one)
-- [ ] Repo pushed somewhere reachable, or be ready to copy it over the LAN
-- [ ] WiFi-only: your SSID in `nixos/modules/wifi.nix` and the module
-      import uncommented in `nixos/configuration.nix`
+**Check the machine-specific values** — the repo carries citadel's real ones
+(SSH public key in `nixos/modules/base.nix`, SSID `Orbital` in
+`nixos/modules/wifi.nix`, wifi module imported). Reinstalling the same
+machine: nothing to do. Repurposing this repo for different hardware or a
+different network: update those first. `grep -rn CHANGEME .` should return
+only `scripts/backup.sh` (a known stub).
 
 ## 1. BIOS prep
 
@@ -300,7 +297,12 @@ sudo curl -LO https://download.fedoraproject.org/pub/fedora/linux/releases/42/Wo
 From the **laptop**, open the installer console:
 
 ```bash
-virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
+# from the Mac: tunnel to the VM's loopback-only VNC console and open it
+# (macOS has no SPICE client; Screen Sharing speaks VNC natively)
+ssh -f -N -o ExitOnForwardFailure=yes -L 5901:127.0.0.1:5901 ankith@citadel
+open vnc://127.0.0.1:5901
+# port = 5900 + N from: virsh vncdisplay work-vm   (usually :1 -> 5901)
+# on a Linux laptop instead: virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
 ```
 
 Walk the Fedora installer. The one thing that matters: **enable full-disk
@@ -323,7 +325,7 @@ virsh qemu-agent-command work-vm '{"execute":"guest-ping"}'
 tailscale status | grep -E 'citadel|work-vm'
 
 # RDP from the laptop to the guest's tailscale name works
-# SPICE fallback works: virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
+# console fallback works: the VNC tunnel above (macOS) / virt-viewer (Linux)
 
 # reboot drill: reboot the host, wait for "host booted" in Slack,
 # then run the unlock flow in docs/operations.md end to end

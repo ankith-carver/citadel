@@ -51,8 +51,10 @@ fi
 #   --controller/--disk     virtio-scsi so discard=unmap flows guest fstrim ->
 #                           qcow2 hole-punching -> host ext4
 #   --video virtio          virtio-gpu, plain 2D (no VirGL/3D — no GPU here)
-#   --graphics spice        console for install + LUKS unlock; reached via
-#                           virt-viewer over SSH, never a network listener
+#   --graphics spice+vnc    two console paths, both loopback-only, reached
+#                           through SSH. SPICE for virt-viewer (Linux
+#                           laptops); VNC because macOS has NO SPICE client
+#                           and Screen Sharing speaks VNC natively
 #   --memballoon none       fixed memory, nothing to balloon
 #   --autoconsole none      headless host — connect from the laptop instead
 virt-install \
@@ -70,18 +72,22 @@ virt-install \
   --network network=default,model=virtio \
   --video virtio \
   --graphics spice \
+  --graphics vnc,listen=127.0.0.1 \
   --channel spicevmc \
   --channel unix,target.type=virtio,target.name=org.qemu.guest_agent.0 \
   --serial pty \
   --cdrom "$ISO_PATH" \
   --autoconsole none
 
+VNC_PORT=$((5900 + $(virsh vncdisplay "$VM_NAME" | cut -d: -f2)))
 cat <<EOF
 
 '$VM_NAME' created and booting the installer.
 
-Next, from your laptop:
-  virt-viewer --connect "qemu+ssh://ankith@$(hostname)/system" $VM_NAME
+Open its console from the laptop:
+  macOS:  ssh -f -N -o ExitOnForwardFailure=yes -L ${VNC_PORT}:127.0.0.1:${VNC_PORT} ankith@$(hostname)
+          open vnc://127.0.0.1:${VNC_PORT}
+  Linux:  virt-viewer --connect "qemu+ssh://ankith@$(hostname)/system" $VM_NAME
 
 Then walk the Fedora installer (choose full-disk encryption!) and follow
 guest/fedora-notes.md for everything after the first boot.

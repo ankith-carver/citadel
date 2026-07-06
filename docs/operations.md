@@ -12,10 +12,13 @@ ssh ankith@citadel
 # 2. start the VM — it boots to the LUKS passphrase prompt
 virsh start work-vm
 
-# 3. from the laptop, open the graphical console and type the passphrase
-virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm
+# 3. from the Mac, open the graphical console and type the passphrase
+#    (VNC over SSH — macOS has no SPICE client; Screen Sharing is native)
+ssh -f -N -o ExitOnForwardFailure=yes -L 5901:127.0.0.1:5901 ankith@citadel
+open vnc://127.0.0.1:5901
 
-# 4. once GNOME is up, switch to RDP (guest's tailscale name) and close SPICE
+# 4. once GNOME is up, switch to RDP (guest's tailscale name) and close
+#    the VNC window (kill the tunnel with: pkill -f 5901:127.0.0.1:5901)
 ```
 
 Notes:
@@ -23,15 +26,15 @@ Notes:
 - The "work-vm not running" Slack warning fires if you leave it locked >10
   min. That's a reminder, not an incident.
 - No RDP until the guest has booted past LUKS and (for session RDP) logged
-  in — that's why the unlock goes through SPICE.
+  in — that's why the unlock goes through the VNC console.
 
 ## Access ladder (when something is broken)
 
 Try in order; each rung survives the failure of the one above:
 
 1. **RDP** to guest tailscale name — normal work.
-2. **SPICE**: `virt-viewer --connect qemu+ssh://ankith@citadel/system work-vm`
-   — works when guest networking/tailscale is broken.
+2. **VNC console over SSH** (see unlock flow above; virt-viewer/SPICE on a
+   Linux laptop) — works when guest networking/tailscale is broken.
 3. **Serial**: `ssh ankith@citadel` then `virsh console work-vm` — works when
    guest graphics are broken (exit with `Ctrl+]`).
 4. **Host over LAN**: when host tailscale is down (you got the Slack alert).

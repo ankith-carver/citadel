@@ -44,8 +44,9 @@ runbooks. When the host changes, the change lands here first.
   pages, no CPU pinning
 - qcow2 on host ext4, virtio-scsi with `discard=unmap`
 - virtio-gpu 2D only; UEFI + emulated TPM 2.0 (swtpm)
-- Remote access: GNOME RDP over guest Tailscale (primary), SPICE via
-  virt-viewer (fallback), `virsh console` (last resort)
+- Remote access: GNOME RDP over guest Tailscale (primary), VNC-over-SSH
+  console (fallback; loopback-only — macOS Screen Sharing opens it),
+  `virsh console` (last resort)
 - External snapshots only, merged back with blockcommit — see
   [scripts/](scripts/)
 
