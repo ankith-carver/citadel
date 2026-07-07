@@ -38,9 +38,13 @@ let
   slackSend = pkgs.writeShellScript "slack-send" ''
     set -euo pipefail
     title="$1" priority="$2" body="$3"
+    # The webhook is OPTIONAL: without it, alerts are a no-op warning, not a
+    # failure — a failing unit would poison the exit status of every
+    # nixos-rebuild until the file exists (bit us on the first bootstrap).
+    # Genuine send failures (bad URL, network down) still fail loudly below.
     if [ ! -r ${webhookFile} ]; then
-      echo "error: ${webhookFile} missing or unreadable — see nixos/modules/alerts.nix header" >&2
-      exit 1
+      echo "warning: ${webhookFile} not set up — alert NOT sent ($title). See nixos/modules/alerts.nix header." >&2
+      exit 0
     fi
     case "$priority" in
       urgent) icon=":rotating_light:" ;;
