@@ -92,7 +92,63 @@ FreeRDP): `work-vm.<tailnet>.ts.net:3389`.
 Caveat to remember: RDP needs the session running — right after a host
 reboot the VM sits at the LUKS prompt, where only SPICE (fallback) works.
 
-### 6. Serial console (last resort access)
+### 6. Samba file share (over tailscale + office LAN)
+
+One share, served from inside the guest. Two roads to it:
+
+- **Tailscale** (anywhere): `smb://work-vm.<tailnet>.ts.net/share`
+- **Office LAN** (faster when at the desk): `smb://<host LAN IP>/share` —
+  the host relays 445 to the guest (`nixos/modules/work-vm-smb.nix`; its
+  header has the one-time static-lease step to do on the host first).
+
+```bash
+sudo dnf install -y samba policycoreutils-python-utils
+
+# the shared directory — everything under it is what's exposed
+mkdir -p ~/share
+
+# SELinux: label it for Samba (stays Enforcing — we label, never disable)
+sudo semanage fcontext -a -t samba_share_t "/home/ankith/share(/.*)?"
+sudo restorecon -Rv /home/ankith/share
+
+# Samba has its own password database, separate from your login password
+sudo smbpasswd -a ankith
+```
+
+Append to `/etc/samba/smb.conf` (the `[global]` keys go in the existing
+`[global]` section):
+
+```ini
+[global]
+    server min protocol = SMB3
+    # macOS interop: proper metadata handling for Finder
+    vfs objects = fruit streams_xattr
+    fruit:metadata = stream
+    fruit:model = MacSamba
+
+[share]
+    path = /home/ankith/share
+    valid users = ankith
+    read only = no
+```
+
+Then enable and open up (same reasoning as RDP: the only routes here are
+NAT + tailscale, so firewalld can allow the service broadly):
+
+```bash
+sudo systemctl enable --now smb.service   # no nmb — no NetBIOS browsing needed
+sudo firewall-cmd --add-service=samba --permanent && sudo firewall-cmd --reload
+```
+
+Verify from the Mac: Finder → Go → Connect to Server → both URLs above,
+authenticating as `ankith` with the smbpasswd password. In office, prefer
+the host-IP URL; SMB traffic then skips the WireGuard round-trip.
+
+> Note: the LAN path is unencrypted SMB3 (signed, not sealed) on the office
+> network. If that ever bothers you, add `smb encrypt = required` to
+> `[global]` — at the cost of most of the LAN speed advantage.
+
+### 7. Serial console (last resort access)
 
 Make `virsh console work-vm` actually show something:
 
@@ -106,7 +162,7 @@ Verify from the HOST: `virsh console work-vm` → login prompt (exit with
 `Ctrl+]`). **Do this before declaring the build done** — it's the access
 path that still works when graphics and networking don't.
 
-### 7. Quality-of-life for a VM desktop
+### 8. Quality-of-life for a VM desktop
 
 ```bash
 # never auto-suspend — it's a VM, "suspend" just means "confusingly gone"
@@ -116,7 +172,7 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-typ
 gsettings set org.gnome.desktop.session idle-delay 0
 ```
 
-### 8. Your actual work environment
+### 9. Your actual work environment
 
 Docker, IDEs, company tooling — all guest-side, per company docs. Nothing on
 the host, ever.

@@ -19,6 +19,7 @@
     ./modules/monitoring.nix     # smartd, chrony, sensors, fwupd
     ./modules/firewall.nix
     ./modules/alerts.nix         # Slack alert timers
+    ./modules/work-vm-smb.nix    # LAN -> guest SMB proxy (share lives in the guest)
 
     # Opt-in: only if this box must use WiFi instead of Ethernet (wire it if
     # you can — see the header of wifi.nix for why, and for the secrets file

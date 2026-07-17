@@ -46,6 +46,9 @@ runbooks. When the host changes, the change lands here first.
 - virtio-gpu 2D only; UEFI + emulated TPM 2.0 (swtpm)
 - Remote access: GNOME RDP over guest Tailscale (primary), SPICE via
   virt-viewer (fallback), `virsh console` (last resort)
+- File share: Samba in the guest — direct over guest Tailscale, and via a
+  host-side 445 proxy for fast in-office LAN access
+  (`nixos/modules/work-vm-smb.nix`)
 - External snapshots only, merged back with blockcommit — see
   [scripts/](scripts/)
 

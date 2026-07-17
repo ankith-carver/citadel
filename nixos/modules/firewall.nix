@@ -1,11 +1,13 @@
-# Firewall: SSH from the LAN, everything from the tailnet, nothing else.
+# Firewall: SSH + the SMB proxy from the LAN, everything from the tailnet,
+# nothing else.
 { ... }:
 
 {
   networking.firewall = {
     enable = true;
 
-    # SSH is the only service exposed on the physical LAN.
+    # SSH. The only other LAN-exposed port is 445, opened by
+    # work-vm-smb.nix next to the proxy it belongs to.
     allowedTCPPorts = [ 22 ];
 
     # Anything arriving over Tailscale is already authenticated by the
